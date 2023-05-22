@@ -37,7 +37,7 @@ global Directory, Folder_Figures
 Directory = initial_directory.replace("\\", "/")
 print(Directory)
 
-Folder_Figures = "Figures/"
+Folder_Figures = "Plots/"
 if os.path.isdir(Folder_Figures):
     shutil.rmtree(Folder_Figures)
     os.mkdir(Folder_Figures)
