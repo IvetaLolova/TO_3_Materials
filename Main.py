@@ -92,36 +92,39 @@ def plot_matrix(title_name, matrix, save=True):
     return 1
 
 
-def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_out_fun, w_fun):
-    print('\n-----------------------------------------')
-    print('Calculation of NGnet', Name, ': Start!')
-    G_Din = G_Diameter_in_fun  # Inner boundary condition ( Inner diameter for Gaussions function)
-    G_Dout = G_Diameter_out_fun  # Outer boundary condition ( Outer diameter for Gaussions function)
-    w = w_fun
-    G_Rin = G_Din / 2  # Inner radius of Gauss
-    G_Rout = G_Dout / 2  # Outer radius of Gauss
+def create_NGnet(name, sigma_fun, overcross_fun, gauss_diameter_inner_fun, gauss_diameter_outer_fun, w_fun):
+    # This function: create_NGnet() - creates the NGnet (the normalized Gaussian network)
+    # Explanation of parameters:
+    # name                      - name of created NGnet. Currently the numbers are used.
+    # signma_fun                - sigma is variance of Gaussian function (it defines width of Gaussian function)
+    # overcross_fun             - define overcross of two Gaussian functions deployed in optimized space
+    # gauss_diameter_inner_fun  - Inner boundary condition ( Inner diameter for Gaussions function)
+    # gauss_diameter_outer_fun  - Outer boundary condition ( Outer diameter for Gaussions function)
+    print('-----------------------------------------')
+    print('Calculation of NGnet', name, ': Start!')
 
-    Overcross = Overcross_fun  # překrytí gausů
-    sigma = sigma_fun  # Variance
+    gauss_radius_inner = gauss_diameter_inner_fun / 2  # Inner radius of Gauss
+    gauss_radius_outer = gauss_diameter_outer_fun / 2  # Outer radius of Gauss
+
     Angle_of_symmetry = 45  # Axis of symmetry (90 pole is not symmetric and 45 pole is symmetric around x=y)
 
-    sigma_x = sigma  # Variance x (CZ: Rozptyl x)
+    sigma_x = sigma_fun  # Variance x (CZ: Rozptyl x)
     sigma_y = sigma_x
 
     # A = ((sqrt(2 * np.pi) * sigma) ** (-1))  # Coefficient for normalizing Gaussian function
     A = 1  # In this optimalization the top of the Gauss is set to 1, because ON/OFF method
 
     # Creating meshgrid for Gaussians functions and also final for the final normalized Gaussian network
-    Resolution = int((G_Rout * 10) + 1)  # Resolution of meshgrid
-    x = np.linspace(0, G_Rout, num=Resolution)
-    y = np.linspace(0, G_Rout, num=Resolution)
+    Resolution = int((gauss_radius_outer * 10) + 1)  # Resolution of meshgrid
+    x = np.linspace(0, gauss_radius_outer, num=Resolution)
+    y = np.linspace(0, gauss_radius_outer, num=Resolution)
     x, y = np.meshgrid(x, y)
 
     # tic = time.perf_counter()
     # toc = time.perf_counter()
     # print(f"Time in {toc - tic:0.10f} seconds")
 
-    Half_Computed = 2 * sqrt(2 * math.log(2)) * sigma * 4
+    Half_Computed = 2 * sqrt(2 * math.log(2)) * sigma_fun * 4
     print("radius_computed:", Half_Computed)
 
     HalfRadiusGauss = Half_Computed
@@ -134,25 +137,25 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
     # Calculation of centers of Gaussians functions
 
     G_Nrad = math.ceil(
-        (G_Rout - G_Rin) / ((HalfRadiusGauss * 4 * (1 - Overcross)) / 10))  # Number of Gaussians function in radialy
+        (gauss_radius_outer - gauss_radius_inner) / ((HalfRadiusGauss * 4 * (1 - overcross_fun)) / 10))  # Number of Gaussians function in radialy
     G_Nrad = round(G_Nrad)
-    G_H = (G_Rout - G_Rin) / G_Nrad  # Height between two centers of Gaussians functions
+    G_H = (gauss_radius_outer - gauss_radius_inner) / G_Nrad  # Height between two centers of Gaussians functions
 
     Gauss_XY = []  # xy - coordinate of gauss center
     Pocet_v_radku = []
     Number_of_Gauss = 0
 
     fig, ax = plt.subplots()
-    TitleName = 'Contour_Suma_Gauss_' + Name
+    TitleName = 'Contour_Suma_Gauss_' + name
     fig.canvas.manager.set_window_title(TitleName)
 
     for i in range(G_Nrad):
         Gauss_XY.append([])
 
-        r = G_Rin + 0.5 * G_H + i * G_H  # HalfRadiusGauss je půlka poloměru gausse
+        half_radius_gauss_fun = gauss_radius_inner + 0.5 * G_H + i * G_H  # HalfRadiusGauss je půlka poloměru gausse
 
-        perimetr = (2 * pi * r / (4))
-        G_i = math.ceil(perimetr / ((HalfRadiusGauss * 4 * (90 / Angle_of_symmetry) * (1 - Overcross)) / 10))
+        perimeter = (2 * pi * half_radius_gauss_fun / 4)
+        G_i = math.ceil(perimeter / ((HalfRadiusGauss * 4 * (90 / Angle_of_symmetry) * (1 - overcross_fun)) / 10))
 
         G_i = round(G_i)
 
@@ -170,8 +173,8 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
 
             angle = 0 + 0.5 * G_Angle_0 + j * G_Angle_0
 
-            G_x = r * cos(angle * pi / 180)
-            G_y = r * sin(angle * pi / 180)
+            G_x = half_radius_gauss_fun * cos(angle * pi / 180)
+            G_y = half_radius_gauss_fun * sin(angle * pi / 180)
 
             Gauss_XY[i][j][0] = G_x
             Gauss_XY[i][j][1] = G_y
@@ -217,20 +220,6 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
     Figure_Directory = Directory + Folder_Figures + TitleName + ".svg"
     fig.savefig(Figure_Directory, dpi=300)
 
-    # plt.show()
-
-    # # Plot of the normalized Gaussian network
-    # z = Suma_Gauss
-    # fig = plt.figure()
-    # fig.canvas.manager.set_window_title('Suma_Gauss________' + Name)
-    # ax = fig.add_subplot(111, projection='3d')
-    # ax.plot_surface(x, y, z, cmap=cm.jet)
-
-    # plt.xlabel('x')
-    # plt.ylabel('y')
-
-    # plt.show()
-
     print('Calculation of Suma_Gauss: DONE!')
 
     # Calculation of Matrix b
@@ -247,7 +236,7 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
             b[i].append([])
             b[i][j] = Gauss_OneRound / Suma_Gauss
 
-            f = f + w[s] * b[i][j]
+            f = f + w_fun[s] * b[i][j]
             s = s + 1
             # sigma_x = sigma_x*0.9
             # sigma_y = sigma_y*0.9
@@ -270,17 +259,7 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
                 if i <= j:
                     f_sym[j, i] = f_Value
 
-        # z = f_sym
-        #
-        # fig = plt.figure()
-        # fig.canvas.manager.set_window_title('NGnet'+Name)
-        # ax = fig.add_subplot(111, projection='3d')
-        # ax.plot_surface(x, y, z, cmap=cm.jet)
-        # # ax.set_title('NGnet')
-        # # plt.xlabel('x')
-        # # plt.ylabel('y')
-
-        TitleName = 'NGnet_' + Name
+        TitleName = 'NGnet_' + name
         fig = plt.figure(figsize=(3.5, 3.5))
         fig.canvas.manager.set_window_title(TitleName)
         ax = fig.add_subplot(111, projection='3d')
@@ -303,7 +282,7 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
         Figure_Directory = Directory + Folder_Figures + TitleName + ".svg"
         fig.savefig(Figure_Directory, dpi=300)
 
-        TitleName = 'NGnet_TOP_' + Name
+        TitleName = 'NGnet_TOP_' + name
         fig = plt.figure(figsize=(3.5, 3.5))
         fig.canvas.manager.set_window_title(TitleName)
         ax = fig.add_subplot(111, projection='3d')
@@ -315,7 +294,7 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
         plt.yticks([0, 15, 30, 45])
         plt.xticks([0, 15, 30, 45])
         ax.set_zticks([])
-        # ax.set_zlim(emit=False)
+
         plt.xlabel('x (mm)')
         plt.ylabel('y(mm)')
         ax.view_init(89, -91)
@@ -330,7 +309,7 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
 
         # plt.show()
 
-        # #Nice top view on NGnet (time-consuming + big size of the pdf and svg files
+        # #Plot - Nice top view on NGnet (time-consuming + big size of the pdf and svg files
         # TitleName = 'NGnet_TOP' + Name
         # fig = plt.figure(figsize=(4.5, 3.5))
         # fig.canvas.manager.set_window_title(TitleName)
@@ -352,7 +331,7 @@ def create_NGnet(Name, sigma_fun, Overcross_fun, G_Diameter_in_fun, G_Diameter_o
 
         # plt.show()
 
-    print('Calculation of NGnet', Name, ': DONE!\n')
+    print('Calculation of NGnet', name, ': DONE!\n')
 
     return f_sym
 
@@ -576,16 +555,6 @@ Height = (Rout - Rin) / Nrad  # Height of one block in created topology
 Angle_0 = 90 / Nphr  # Angle of one block in created topology
 
 ########################################################################################################################
-# Parameters of Gaussians function
-
-G_Din = 20  # Inner boundary condition ( Inner diameter for Gaussions function)
-G_Dout = 100  # Outer boundary condition ( Outer diameter for Gaussions function)
-sigma = 2  # Variance  #SyMSpaceVar
-sigma_x = sigma  # Variance x (CZ: Rozptyl x)
-sigma_y = sigma_x
-
-Overlap = 0.3  # překrytí gausů
-########################################################################################################################
 # Set up random weighting coefficients
 w1 = [random() for i in range(500)]
 w2 = [random() for i in range(500)]
@@ -604,7 +573,7 @@ w2 = [random() for i in range(500)]
 NGnet1 = create_NGnet("1", 1.2, 0.2, 40, 90, w1)
 # NGnet1 = create_NGnet("1", 1.1, 0.25, 38, 90, w1)  # Number_of_Gauss: 78
 # # NGnet2:
-NGnet2 = create_NGnet("2", 2.5, +0.1, 50, 90, w2)
+NGnet2 = create_NGnet("2", 2.5, +0.1, 30, 90, w2)
 # NGnet2 = create_NGnet("2", 1, +0.2, 20, 90,w2)
 
 # Now there are two diffrent NGnets defined. In next steps the final geometry will be defined.

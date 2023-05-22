@@ -1,5 +1,7 @@
 # Ignore file Figures, where the graphs are changed.
-Figures/
+Figures/*.pdf
+Figures/*.svg
+Figures/NGnet_TOP_2.svg
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
