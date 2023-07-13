@@ -546,6 +546,79 @@ def material_test_flying_part(material, elements_origin):
     return elements_visited_material
 
 
+def envelop_material(inside_material, outside_material, elements_origin):
+    print('Material: ', str(inside_material), 'will be enveloped with material:  ', str(outside_material))
+    plot_matrix('05_' + str(inside_material) + '_elements_origin_before_change_envelop_material', elements_origin, save=True)
+    Size = numpy.shape(elements_origin)
+    N_rad_visited = Size[0]
+    N_phr_visited = Size[1]
+    # print('Size of Elements:', numpy.shape(elements_origin))
+    elements_visited_material = []
+    color_green = 5
+
+    # envelop_material_change = elements_origin.copy()
+
+    envelop_material_change = []
+
+    for i in range(N_rad_visited):
+        elements_visited_material.append([])
+        envelop_material_change.append([])
+        for j in range(N_phr_visited):
+            elements_visited_material[i].append([])
+            envelop_material_change[i].append([])
+            envelop_material_change[i][j] = elements_origin[i][j]
+            if elements_origin[i][j] == inside_material:
+                elements_visited_material[i][j] = 1
+            else:
+                elements_visited_material[i][j] = 0
+
+    plot_matrix("Envelop_inside_material_Visited_FUN_", np.multiply(elements_visited_material, inside_material), save=True)
+
+    change = 1
+    while change == 1:
+        change = 0
+        for i in range(Nrad):
+            for j in range(Nphr):
+
+                # Up -> Down
+                if (elements_visited_material[i][j] == 1) and i > 0 and j > 0 and i < (Nrad - 1) and j < (Nphr - 1):
+                    if elements_origin[i - 1][j] != outside_material and elements_origin[i - 1][j] != inside_material:
+                        elements_origin[i - 1][j] = outside_material
+                        envelop_material_change[i - 1][j] = color_green
+                        change = 1
+                    if elements_origin[i - 1][j + 1] != outside_material and elements_origin[i - 1][j + 1] != inside_material:
+                        elements_origin[i - 1][j + 1] = outside_material
+                        envelop_material_change[i - 1][j + 1] = color_green
+                        change = 1
+                    if elements_origin[i][j + 1] != outside_material and elements_origin[i][j + 1] != inside_material:
+                        elements_origin[i][j + 1] = outside_material
+                        envelop_material_change[i][j + 1] = color_green
+                        change = 1
+                    if elements_origin[i + 1][j + 1] != outside_material and elements_origin[i + 1][j + 1] != inside_material:
+                        elements_origin[i + 1][j + 1] = outside_material
+                        envelop_material_change[i + 1][j + 1] = color_green
+                        change = 1
+                    if elements_origin[i + 1][j] != outside_material and elements_origin[i + 1][j] != inside_material:
+                        elements_origin[i + 1][j] = outside_material
+                        envelop_material_change[i + 1][j] = color_green
+                        change = 1
+                    if elements_origin[i + 1][j - 1] != outside_material and elements_origin[i + 1][j - 1] != inside_material:
+                        elements_origin[i + 1][j - 1] = outside_material
+                        envelop_material_change[i + 1][j - 1] = color_green
+                        change = 1
+                    if elements_origin[i][j - 1] != outside_material and elements_origin[i][j - 1] != inside_material:
+                        elements_origin[i][j - 1] = outside_material
+                        envelop_material_change[i][j - 1] = color_green
+                        change = 1
+                    if elements_origin[i - 1][j - 1] != outside_material and elements_origin[i - 1][j - 1] != inside_material:
+                        elements_origin[i - 1][j - 1] = outside_material
+                        envelop_material_change[i - 1][j - 1] = color_green
+                        change = 1
+
+    plot_matrix('05_' + str(inside_material) + '_elements_origin_highlighted_change_envelop_material', envelop_material_change, save=True)
+    plot_matrix('05_' + str(inside_material) + '_elements_origin_after_change_envelop_material', elements_origin, save=True)
+    return elements_origin
+
 ########################################################################################################################
 ########################################################################################################################
 
@@ -667,6 +740,8 @@ material_test_single_element(material_Aluminium, Elements)
 # Now, the geometry will be checked if iron is one piece.
 print('Geometry check starts! - Flying parts check')
 material_test_flying_part(material_Iron, Elements)
+
+envelop_material(material_Aluminium,material_Iron, Elements)
 
 ########################################################################################################################
 print('END of script!')
