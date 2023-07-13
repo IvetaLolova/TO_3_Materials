@@ -27,6 +27,7 @@ from random import random
 from matplotlib import pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib import cm
+from datetime import datetime
 
 ########################################################################################################################
 ########################################################################################################################
@@ -56,10 +57,12 @@ colors = ["#ffffff", "#0000dd", "#cccccc", "#FFFF00", "#FF0000", "#00FF00", "#00
 # colors = [0=white, 1=dark_blue, 2=grey, 3=yellow, 4=red, 5=green, 6=light_blue, 7=purple]
 my_cmap = ListedColormap(colors, name="My_ColorMap_TO")
 
+print('The final Geometry Matrix was created.', datetime.now())
+
 
 ########################################################################################################################
 ########################################################################################################################
-# Defining of functions:
+# Defining of functions for NGnet and creation of final GEOMETRY:
 
 
 def plot_matrix(title_name, matrix, save=True):
